@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS File Manager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .upload-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+      height: 100%;
+      width: 100%;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(66, 230, 149, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 180px;
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .icon-image { background: #4dabf7; }
+    .icon-video { background: #ff6b6b; }
+    .icon-document { background: #51cf66; }
+    .icon-audio { background: #ff922b; }
+    .icon-archive { background: #cc5de8; }
+    .icon-other { background: #868e96; }
+
+    .stat-info h3 {
+      font-size: 1.8rem;
+      color: #333;
+    }
+
+    .stat-info p {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      margin-top: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    th {
+      padding: 18px 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #e9ecef;
+      transition: all 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+      transform: scale(1.002);
+    }
+
+    td {
+      padding: 16px 15px;
+      color: #495057;
+      vertical-align: middle;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .file-name {
+      display: flex;
+      align-items: center;
+    }
+
+    .file-name span {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .file-type {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .type-image { background: #e3f2fd; color: #1976d2; }
+    .type-video { background: #ffebee; color: #d32f2f; }
+    .type-document { background: #e8f5e9; color: #388e3c; }
+    .type-audio { background: #fff3e0; color: #f57c00; }
+    .type-archive { background: #f3e5f5; color: #7b1fa2; }
+    .type-other { background: #f5f5f5; color: #616161; }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .btn-view { background: #4dabf7; }
+    .btn-edit { background: #ffc107; }
+    .btn-delete { background: #ff6b6b; }
+    .btn-download { background: #51cf66; }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #dee2e6;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #495057;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      color: #868e96;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 500px;
+      animation: modalSlide 0.3s ease;
+    }
+
+    @keyframes modalSlide {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: #333;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-body {
+      padding: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 600;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .loading i {
+      font-size: 2rem;
+      color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1001;
+      animation: toastSlide 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @keyframes toastSlide {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    }
+
+    .toast.info {
+      background: linear-gradient(135deg, #4dabf7 0%, #1976d2 100%);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      gap: 10px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      border: 1px solid #dee2e6;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pagination button.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #f8f9fa;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 1200px) {
+      .toolbar {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+      }
+      
+      .stats {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 15px;
+      }
+      
+      .header {
+        padding: 20px;
+      }
+      
+      .header h1 {
+        font-size: 1.8rem;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      .stat-card {
+        flex: 1;
+        min-width: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-folder-open"></i> LMS File Manager</h1>
+      <p>Manage all your digital files in one place</p>
+    </div>
+
+    <div class="content">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="upload-section">
+          <div class="file-input-wrapper">
+            <button class="btn btn-primary">
+              <i class="fas fa-upload"></i> Upload File
+            </button>
+            <input type="file" id="fileInput" accept="*/*">
+          </div>
+          <div class="file-input-wrapper">
+            <button class="btn btn-success">
+              <i class="fas fa-folder-plus"></i> Upload Multiple
+            </button>
+            <input type="file" id="multiFileInput" accept="*/*" multiple>
+          </div>
+        </div>
+
+        <div class="stats" id="statsContainer">
+          <!-- Stats will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Files Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 5%">#</th>
+              <th style="width: 35%">File</th>
+              <th style="width: 15%">Type</th>
+              <th style="width: 10%">Size</th>
+              <th style="width: 15%">Uploaded</th>
+              <th style="width: 20%">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="filesTableBody">
+            <!-- Files will be loaded here -->
+          </tbody>
+        </table>
+
+        <div id="loadingState" class="loading">
+          <i class="fas fa-spinner"></i>
+          <p>Loading files...</p>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-file-alt"></i>
+          <h3>No Files Yet</h3>
+          <p>Upload your first file to get started!</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination" style="display: none;">
+        <!-- Pagination buttons will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> Edit File Name</h3>
+        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="editFileName">File Name (without extension)</label>
+          <input type="text" id="editFileName" placeholder="Enter new file name">
+          <small style="color: #666; margin-top: 5px; display: block;">
+            Extension: <span id="currentExtension"></span>
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveFileName()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-trash-alt"></i> Confirm Delete</h3>
+        <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteFileName"></strong>?</p>
+        <p style="color: #ff6b6b; margin-top: 10px;">
+          <i class="fas fa-exclamation-triangle"></i> This action cannot be undone!
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Delete File</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer"></div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:5000/api/media-files';
+    let currentFiles = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentEditFileId = null;
+    let currentDeleteFileId = null;
+
+    // DOM Elements
+    const filesTableBody = document.getElementById('filesTableBody');
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const pagination = document.getElementById('pagination');
+    const statsContainer = document.getElementById('statsContainer');
+    const fileInput = document.getElementById('fileInput');
+    const multiFileInput = document.getElementById('multiFileInput');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFiles();
+      loadStats();
+      
+      // Setup file input listeners
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          uploadFile(e.target.files[0]);
+        }
+      });
+      
+      multiFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          uploadMultipleFiles(e.target.files);
+        }
+      });
+    });
+
+    // Load all files
+    async function loadFiles(page = 1, type = null) {
+      try {
+        showLoading();
+        const url = `${API_BASE_URL}?page=${page}&limit=10${type ? `&type=${type}` : ''}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+          currentFiles = result.data.files;
+          currentPage = result.data.pagination.page;
+          totalPages = result.data.pagination.pages;
+          
+          renderFilesTable();
+          renderPagination();
+          
+          if (currentFiles.length === 0) {
+            showEmptyState();
+          } else {
+            hideEmptyState();
+          }
+        } else {
+          showToast('Failed to load files', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading files:', error);
+        showToast('Network error while loading files', 'error');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Load file statistics
+    async function loadStats() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/stats`);
+        const result = await response.json();
+        
+        if (result.success) {
+          renderStats(result.data);
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    }
+
+    // Upload single file
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        showToast(`Uploading ${file.name}...`, 'info');
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast('File uploaded successfully!', 'success');
+          loadFiles();
+          loadStats();
+          fileInput.value = '';
+        } else {
+          showToast(result.message || 'Upload failed', 'error');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        showToast('Upload failed: ' + error.message, 'error');
+      }
+    }
+
+    // Upload multiple files
+    async function uploadMultipleFiles(files) {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      
+      try {
+        showToast(`Uploading ${files.length} files...`, 'info');
+        const response = await fetch(`${API_BASE_URL}/upload-multiple`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast(`Uploaded ${result.data.successful.length} files successfully!`, 'success');
+          loadFiles();
+          loadStats();
+          multiFileInput.value = '';
+        } else {
+          showToast(result.message || 'Upload failed', 'error');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        showToast('Upload failed: ' + error.message, 'error');
+      }
+    }
+
+    // Delete file
+    async function deleteFile(fileId) {
+      try {
+        showToast('Deleting file...', 'info');
+        const response = await fetch(`${API_BASE_URL}/${fileId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast('File deleted successfully!', 'success');
+          loadFiles();
+          loadStats();
+          closeDeleteModal();
+        } else {
+          showToast(result.message || 'Delete failed', 'error');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        showToast('Delete failed: ' + error.message, 'error');
+      }
+    }
+
+    // Edit file name
+    async function updateFileName(fileId, newName) {
+      try {
+        showToast('Updating file name...', 'info');
+        const response = await fetch(`${API_BASE_URL}/${fileId}/name`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: newName })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast('File name updated successfully!', 'success');
+          loadFiles();
+          closeEditModal();
+        } else {
+          showToast(result.message || 'Update failed', 'error');
+        }
+      } catch (error) {
+        console.error('Update error:', error);
+        showToast('Update failed: ' + error.message, 'error');
+      }
+    }
+
+    // Render files table
+    function renderFilesTable() {
+      filesTableBody.innerHTML = '';
+      
+      currentFiles.forEach((file, index) => {
+        const row = document.createElement('tr');
+        
+        // Get file icon and color based on type
+        const { icon, iconClass, typeClass } = getFileTypeInfo(file.type);
+        
+        // Format file size
+        const fileSize = formatFileSize(file.size);
+        
+        // Format date
+        const uploadDate = new Date(file.createdAt).toLocaleDateString();
+        
+        // Get file name without extension for display
+        const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        
+        row.innerHTML = `
+          <td>${(currentPage - 1) * 10 + index + 1}</td>
+          <td>
+            <div class="file-name">
+              <div class="file-icon ${iconClass}">
+                <i class="${icon}"></i>
+              </div>
+              <div>
+                <span>${fileNameWithoutExt}</span>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">
+                  .${file.extension}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="file-type ${typeClass}">${file.type}</span>
+          </td>
+          <td>${fileSize}</td>
+          <td>${uploadDate}</td>
+          <td>
+            <div class="actions">
+              <button class="action-btn btn-view" onclick="viewFile('${file.src}')" title="View">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="action-btn btn-download" onclick="downloadFile('${file.src}', '${file.name}')" title="Download">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="action-btn btn-edit" onclick="openEditModal('${file._id}', '${fileNameWithoutExt}', '${file.extension}')" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="action-btn btn-delete" onclick="openDeleteModal('${file._id}', '${file.name}')" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        
+        // Add preview for images
+        if (file.type === 'image') {
+          const fileCell = row.querySelector('.file-name');
+          fileCell.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <img src="${file.src}" alt="${file.name}" class="preview" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid #e9ecef;">
+              <div>
+                <span>${fileNameWithoutExt}</span>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">
+                  .${file.extension}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        filesTableBody.appendChild(row);
+      });
+    }
+
+    // Render statistics
+    function renderStats(stats) {
+      const statsData = [
+        { type: 'image', icon: 'fas fa-image', color: 'icon-image', label: 'Images' },
+        { type: 'video', icon: 'fas fa-video', color: 'icon-video', label: 'Videos' },
+        { type: 'document', icon: 'fas fa-file-alt', color: 'icon-document', label: 'Documents' },
+        { type: 'audio', icon: 'fas fa-music', color: 'icon-audio', label: 'Audio' },
+        { type: 'archive', icon: 'fas fa-file-archive', color: 'icon-archive', label: 'Archives' },
+        { type: 'other', icon: 'fas fa-file', color: 'icon-other', label: 'Others' }
+      ];
+      
+      let statsHTML = '';
+      
+      statsData.forEach(stat => {
+        const typeStat = stats.byType.find(s => s.type === stat.type) || { count: 0, totalSize: 0 };
+        const typeSize = stats.total.totalFiles > 0 
+          ? Math.round((typeStat.count / stats.total.totalFiles) * 100) 
+          : 0;
+        
+        statsHTML += `
+          <div class="stat-card">
+            <div class="stat-icon ${stat.color}">
+              <i class="${stat.icon}"></i>
+            </div>
+            <div class="stat-info">
+              <h3>${typeStat.count}</h3>
+              <p>${stat.label} (${typeSize}%)</p>
+            </div>
+          </div>
+        `;
+      });
+      
+      // Add total files stat
+      statsHTML += `
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <i class="fas fa-folder-open"></i>
+          </div>
+          <div class="stat-info">
+            <h3>${stats.total.totalFiles}</h3>
+            <p>Total Files</p>
+          </div>
+        </div>
+      `;
+      
+      statsContainer.innerHTML = statsHTML;
+    }
+
+    // Render pagination
+    function renderPagination() {
+      if (totalPages <= 1) {
+        pagination.style.display = 'none';
+        return;
+      }
+      
+      pagination.style.display = 'flex';
+      let paginationHTML = '';
+      
+      // Previous button
+      paginationHTML += `
+        <button onclick="loadFiles(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      `;
+      
+      // Page numbers
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+          <button onclick="loadFiles(${i})" ${i === currentPage ? 'class="active"' : ''}>
+            ${i}
+          </button>
+        `;
+      }
+      
+      // Next button
+      paginationHTML += `
+        <button onclick="loadFiles(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      `;
+      
+      pagination.innerHTML = paginationHTML;
+    }
+
+    // Modal functions
+    function openEditModal(fileId, fileName, extension) {
+      currentEditFileId = fileId;
+      document.getElementById('editFileName').value = fileName;
+      document.getElementById('currentExtension').textContent = extension;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+      currentEditFileId = null;
+    }
+
+    function openDeleteModal(fileId, fileName) {
+      currentDeleteFileId = fileId;
+      document.getElementById('deleteFileName').textContent = fileName;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      currentDeleteFileId = null;
+    }
+
+    function saveFileName() {
+      const newName = document.getElementById('editFileName').value.trim();
+      if (!newName) {
+        showToast('Please enter a file name', 'error');
+        return;
+      }
+      
+      if (newName.includes('.')) {
+        showToast('Do not include extension in file name', 'error');
+        return;
+      }
+      
+      updateFileName(currentEditFileId, newName);
+    }
+
+    function confirmDelete() {
+      if (currentDeleteFileId) {
+        deleteFile(currentDeleteFileId);
+      }
+    }
+
+    // Utility functions
+    function getFileTypeInfo(type) {
+      const types = {
+        image: { icon: 'fas fa-image', iconClass: 'icon-image', typeClass: 'type-image' },
+        video: { icon: 'fas fa-video', iconClass: 'icon-video', typeClass: 'type-video' },
+        document: { icon: 'fas fa-file-alt', iconClass: 'icon-document', typeClass: 'type-document' },
+        audio: { icon: 'fas fa-music', iconClass: 'icon-audio', typeClass: 'type-audio' },
+        archive: { icon: 'fas fa-file-archive', iconClass: 'icon-archive', typeClass: 'type-archive' },
+        other: { icon: 'fas fa-file', iconClass: 'icon-other', typeClass: 'type-other' }
+      };
+      
+      return types[type] || types.other;
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function viewFile(url) {
+      window.open(url, '_blank');
+    }
+
+    function downloadFile(url, fileName) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      
+      document.getElementById('toastContainer').appendChild(toast);
+      
+      // Remove toast after 3 seconds
+      setTimeout(() => {
+        toast.style.animation = 'toastSlide 0.3s ease reverse';
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    function showLoading() {
+      loadingState.style.display = 'block';
+      filesTableBody.style.display = 'none';
+    }
+
+    function hideLoading() {
+      loadingState.style.display = 'none';
+      filesTableBody.style.display = '';
+    }
+
+    function showEmptyState() {
+      emptyState.style.display = 'block';
+      filesTableBody.style.display = 'none';
+    }
+
+    function hideEmptyState() {
+      emptyState.style.display = 'none';
+      filesTableBody.style.display = '';
+    }
+
+    // Filter by file type
+    function filterByType(type) {
+      loadFiles(1, type);
+    }
+  </script>
+</body>
+</html>

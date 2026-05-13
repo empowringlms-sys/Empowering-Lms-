@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.25s ease-out;
+}
+
+/* Force cursor pointer on clickable elements globally */
+button,
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  cursor: pointer !important;
+}
+
+/* Optional utility class if specific div needs it */
+.cursor-pointer {
+  cursor: pointer !important;
+}

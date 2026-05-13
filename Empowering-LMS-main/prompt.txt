@@ -1,0 +1,15 @@
+ye aik LMS SAAS base programm he. is ki working ye he k koi bi company LMS purchase kr ke apne courses create kr sukkti he abd on me apne learners ko enroll kr sukti he. 
+
+
+abb me is me aik ye feature bi impliment krna cahta hon k is ka owner super admin panel se wo bi courses ko add kr suke. super admin panel ke courses hr company ko show hon ge and hr company os me apne learners ko enrol kr suke same wese hi jese apne courses me krti he, 
+just difference ye ho ga k super admin se jo sourses create kye gye hen wo sub compaies ko show hon ge and sari companies on ke data ko just exmplore kr sukti hon gi edit ya del nahi. 
+ya sirf apne learners ko on courses me add sukti hon gi. 
+Super Admin ager companies ko pahle se kosh courses sari companies ko dena cahaiye to wo sukta ho. hr company ke jo courses hen wo on ke private hon ge . onhen admin access nahi kr suke ga. but super admin ke sare courses  sari companies access kr suke gi. (edit ya del nahi)
+
+app super admin panle pr ye feature bnao properply jehan pr super admin courses ko add kr suke. 
+is me wo sare feature bnao jo k admin panle me hen. 
+is me bi same wese hi topics hon ge. and then hr topic me multiple types ka content ho ga. 
+
+is pore feature ko app super admin panel me and backend me prperlly set kro and admin panel me bi ye features bnao k wo compane ke courses ko explore kr suken and apne learners ko add kr suken. 
+
+super admin apnel me courses add krna, topics add krna, eidt krna , content add krna, del krna edit krna course ko visble krna ya nahi ye sare features wese hi hon ge jese k super admin panel me hen

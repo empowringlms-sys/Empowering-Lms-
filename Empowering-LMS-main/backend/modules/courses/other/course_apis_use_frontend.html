@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .content-type-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Course Management System</h1>
+            <p class="text-gray-600">Manage courses, topics, and content in one place</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button id="showCourses" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-book mr-2"></i>All Courses
+                </button>
+                <button id="createCourseBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-plus mr-2"></i>Create New Course
+                </button>
+                <button id="refreshBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="contentArea" class="bg-white rounded-xl shadow-lg p-6">
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-12 hidden">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading...</p>
+            </div>
+
+            <!-- Courses List View (Default) -->
+            <div id="coursesView" class="fade-in">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-book-open mr-3"></i>All Courses
+                </h2>
+                
+                <div id="coursesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Courses will be loaded here -->
+                </div>
+                
+                <div id="noCourses" class="text-center py-12 hidden">
+                    <i class="fas fa-book text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No courses found. Create your first course!</p>
+                </div>
+            </div>
+
+            <!-- Single Course View -->
+            <div id="courseView" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button id="backToCourses" class="mr-4 p-2 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-arrow-left text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h2 id="courseTitle" class="text-2xl font-bold text-gray-800"></h2>
+                        <p id="courseDescription" class="text-gray-600 mt-1"></p>
+                    </div>
+                    <div class="ml-auto flex space-x-2">
+                        <button id="editCourseBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                            <i class="fas fa-edit mr-1"></i> Edit Course
+                        </button>
+                        <button id="addTopicBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> Add Topic
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="topicsContainer" class="space-y-4">
+                    <!-- Topics will be loaded here -->
+                </div>
+                
+                <div id="noTopics" class="text-center py-12 hidden">
+                    <i class="fas fa-folder-open text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No topics yet. Add your first topic!</p>
+                </div>
+            </div>
+
+            <!-- Single Topic View -->
+            <div id="topicView" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button id="backToCourse" class="mr-4 p-2 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-arrow-left text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h2 id="topicTitle" class="text-2xl font-bold text-gray-800"></h2>
+                        <p class="text-gray-600 mt-1">Content items in this topic</p>
+                    </div>
+                    <div class="ml-auto flex space-x-2">
+                        <button id="editTopicBtn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                            <i class="fas fa-edit mr-1"></i> Edit
+                        </button>
+                        <button id="addContentBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-1"></i> Add Content
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="contentContainer" class="space-y-4">
+                    <!-- Content items will be loaded here -->
+                </div>
+                
+                <div id="noContent" class="text-center py-12 hidden">
+                    <i class="fas fa-file text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No content yet. Add your first content item!</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status Toast -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-xl hidden z-50">
+            <div class="flex items-center">
+                <i id="toastIcon" class="mr-3"></i>
+                <span id="toastMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Create/Edit Course Modal -->
+    <div id="courseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 slide-in">
+            <div class="p-6">
+                <h3 id="courseModalTitle" class="text-xl font-bold text-gray-800 mb-4"></h3>
+                <form id="courseForm">
+                    <input type="hidden" id="courseId">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="courseName">Course Name *</label>
+                        <input type="text" id="courseName" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="courseDescription">Description *</label>
+                        <textarea id="courseDescriptionInput" rows="3" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="coverArt">Cover Image URL</label>
+                        <input type="url" id="coverArt"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            placeholder="https://example.com/image.jpg">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="isVisible" class="mr-2">
+                            <span class="text-gray-700">Course is visible to users</span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelCourseModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveCourseBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            Save Course
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Topic Modal -->
+    <div id="topicModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 slide-in">
+            <div class="p-6">
+                <h3 id="topicModalTitle" class="text-xl font-bold text-gray-800 mb-4"></h3>
+                <form id="topicForm">
+                    <input type="hidden" id="topicId">
+                    <input type="hidden" id="currentCourseId">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="topicName">Topic Name *</label>
+                        <input type="text" id="topicName" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2" for="topicOrder">Order Number</label>
+                        <input type="number" id="topicOrder" min="1"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            placeholder="Auto-assigned if empty">
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelTopicModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveTopicBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            Save Topic
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Content Modal -->
+    <div id="contentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 slide-in max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <h3 id="contentModalTitle" class="text-xl font-bold text-gray-800 mb-4"></h3>
+                <form id="contentForm">
+                    <input type="hidden" id="contentId">
+                    <input type="hidden" id="currentTopicId">
+                    <input type="hidden" id="currentCourseIdForContent">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="contentType">Content Type *</label>
+                        <select id="contentType" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <option value="">Select Type</option>
+                            <option value="TEXT">Text</option>
+                            <option value="IMAGE">Image</option>
+                            <option value="VIDEO">Video</option>
+                            <option value="AUDIO">Audio</option>
+                            <option value="LINK">Link</option>
+                            <option value="FILE">File</option>
+                            <option value="DOCS">Document</option>
+                            <option value="EMBED">Embed</option>
+                            <option value="DISCUSSION">Discussion</option>
+                            <option value="QNA">Q&A</option>
+                            <option value="MCQ">Multiple Choice</option>
+                            <option value="PPT">Presentation</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="contentOrder">Order Number</label>
+                        <input type="number" id="contentOrder" min="1"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            placeholder="Auto-assigned if empty">
+                    </div>
+                    
+                    <div id="dynamicContentFields" class="mb-6 space-y-4">
+                        <!-- Dynamic fields based on content type will be added here -->
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelContentModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveContentBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            Save Content
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 slide-in">
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                    <h3 id="confirmTitle" class="text-xl font-bold text-gray-800 mb-2"></h3>
+                    <p id="confirmMessage" class="text-gray-600"></p>
+                </div>
+                
+                <div class="flex justify-center space-x-4">
+                    <button id="cancelConfirm" class="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        Cancel
+                    </button>
+                    <button id="confirmDelete" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reorder Modal -->
+    <div id="reorderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 slide-in max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b">
+                <h3 id="reorderTitle" class="text-xl font-bold text-gray-800"></h3>
+                <p class="text-gray-600 mt-1">Drag items to reorder</p>
+            </div>
+            
+            <div id="reorderList" class="p-6 overflow-y-auto flex-grow">
+                <!-- Reorder items will be added here -->
+            </div>
+            
+            <div class="p-6 border-t">
+                <div class="flex justify-end space-x-3">
+                    <button id="cancelReorder" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button id="saveReorder" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Save Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let currentCourseId = null;
+        let currentTopicId = null;
+        let itemsToReorder = [];
+        let reorderType = ''; // 'topics' or 'content'
+
+        // Content type configurations
+        const contentTypeConfigs = {
+            TEXT: {
+                fields: [
+                    { name: 'text', label: 'Text Content', type: 'textarea', required: true },
+                    { name: 'formatted', label: 'Is Formatted?', type: 'checkbox' }
+                ]
+            },
+            VIDEO: {
+                fields: [
+                    { name: 'url', label: 'Video URL', type: 'url', required: true },
+                    { name: 'title', label: 'Video Title', type: 'text' },
+                    { name: 'duration', label: 'Duration (seconds)', type: 'number' },
+                    { name: 'thumbnail', label: 'Thumbnail URL', type: 'url' }
+                ]
+            },
+            IMAGE: {
+                fields: [
+                    { name: 'url', label: 'Image URL', type: 'url', required: true },
+                    { name: 'altText', label: 'Alt Text', type: 'text' },
+                    { name: 'caption', label: 'Caption', type: 'text' }
+                ]
+            },
+            AUDIO: {
+                fields: [
+                    { name: 'url', label: 'Audio URL', type: 'url', required: true },
+                    { name: 'duration', label: 'Duration (seconds)', type: 'number' },
+                    { name: 'title', label: 'Audio Title', type: 'text' }
+                ]
+            },
+            LINK: {
+                fields: [
+                    { name: 'externalUrl', label: 'Link URL', type: 'url', required: true },
+                    { name: 'title', label: 'Link Title', type: 'text' },
+                    { name: 'description', label: 'Description', type: 'textarea' }
+                ]
+            },
+            MCQ: {
+                fields: [
+                    { name: 'question', label: 'Question', type: 'textarea', required: true },
+                    { name: 'options', label: 'Options (JSON array)', type: 'textarea', required: true, 
+                      placeholder: '[{"text": "Option 1", "isCorrect": false}, {"text": "Option 2", "isCorrect": true}]' },
+                    { name: 'explanation', label: 'Explanation', type: 'textarea' },
+                    { name: 'points', label: 'Points', type: 'number', value: 1 }
+                ]
+            },
+            QNA: {
+                fields: [
+                    { name: 'question', label: 'Question', type: 'textarea', required: true },
+                    { name: 'answer', label: 'Answer', type: 'textarea', required: true }
+                ]
+            },
+            FILE: {
+                fields: [
+                    { name: 'fileUrl', label: 'File URL', type: 'url', required: true },
+                    { name: 'title', label: 'File Title', type: 'text' },
+                    { name: 'size', label: 'File Size (bytes)', type: 'number' },
+                    { name: 'mimeType', label: 'MIME Type', type: 'text' }
+                ]
+            },
+            DOCS: {
+                fields: [
+                    { name: 'fileUrl', label: 'Document URL', type: 'url', required: true },
+                    { name: 'title', label: 'Document Title', type: 'text' },
+                    { name: 'pages', label: 'Number of Pages', type: 'number' }
+                ]
+            },
+            PPT: {
+                fields: [
+                    { name: 'fileUrl', label: 'Presentation URL', type: 'url', required: true },
+                    { name: 'title', label: 'Presentation Title', type: 'text' },
+                    { name: 'slides', label: 'Number of Slides', type: 'number' }
+                ]
+            },
+            EMBED: {
+                fields: [
+                    { name: 'embedCode', label: 'Embed Code', type: 'textarea', required: true },
+                    { name: 'width', label: 'Width', type: 'number' },
+                    { name: 'height', label: 'Height', type: 'number' }
+                ]
+            },
+            DISCUSSION: {
+                fields: [
+                    { name: 'topic', label: 'Discussion Topic', type: 'text', required: true },
+                    { name: 'instructions', label: 'Instructions', type: 'textarea' }
+                ]
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            // Views
+            loading: document.getElementById('loading'),
+            coursesView: document.getElementById('coursesView'),
+            courseView: document.getElementById('courseView'),
+            topicView: document.getElementById('topicView'),
+            
+            // Containers
+            coursesContainer: document.getElementById('coursesContainer'),
+            topicsContainer: document.getElementById('topicsContainer'),
+            contentContainer: document.getElementById('contentContainer'),
+            
+            // No data messages
+            noCourses: document.getElementById('noCourses'),
+            noTopics: document.getElementById('noTopics'),
+            noContent: document.getElementById('noContent'),
+            
+            // Course view elements
+            courseTitle: document.getElementById('courseTitle'),
+            courseDescription: document.getElementById('courseDescription'),
+            topicTitle: document.getElementById('topicTitle'),
+            
+            // Buttons
+            showCourses: document.getElementById('showCourses'),
+            createCourseBtn: document.getElementById('createCourseBtn'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            backToCourses: document.getElementById('backToCourses'),
+            backToCourse: document.getElementById('backToCourse'),
+            editCourseBtn: document.getElementById('editCourseBtn'),
+            addTopicBtn: document.getElementById('addTopicBtn'),
+            editTopicBtn: document.getElementById('editTopicBtn'),
+            addContentBtn: document.getElementById('addContentBtn'),
+            
+            // Modals
+            courseModal: document.getElementById('courseModal'),
+            topicModal: document.getElementById('topicModal'),
+            contentModal: document.getElementById('contentModal'),
+            confirmModal: document.getElementById('confirmModal'),
+            reorderModal: document.getElementById('reorderModal'),
+            
+            // Toast
+            toast: document.getElementById('toast'),
+            toastIcon: document.getElementById('toastIcon'),
+            toastMessage: document.getElementById('toastMessage'),
+            
+            // Forms
+            courseForm: document.getElementById('courseForm'),
+            topicForm: document.getElementById('topicForm'),
+            contentForm: document.getElementById('contentForm'),
+            
+            // Form inputs
+            courseId: document.getElementById('courseId'),
+            courseName: document.getElementById('courseName'),
+            courseDescriptionInput: document.getElementById('courseDescriptionInput'),
+            coverArt: document.getElementById('coverArt'),
+            isVisible: document.getElementById('isVisible'),
+            
+            topicId: document.getElementById('topicId'),
+            currentCourseId: document.getElementById('currentCourseId'),
+            topicName: document.getElementById('topicName'),
+            topicOrder: document.getElementById('topicOrder'),
+            
+            contentId: document.getElementById('contentId'),
+            currentTopicId: document.getElementById('currentTopicId'),
+            currentCourseIdForContent: document.getElementById('currentCourseIdForContent'),
+            contentType: document.getElementById('contentType'),
+            contentOrder: document.getElementById('contentOrder'),
+            dynamicContentFields: document.getElementById('dynamicContentFields'),
+            
+            // Modal titles
+            courseModalTitle: document.getElementById('courseModalTitle'),
+            topicModalTitle: document.getElementById('topicModalTitle'),
+            contentModalTitle: document.getElementById('contentModalTitle'),
+            confirmTitle: document.getElementById('confirmTitle'),
+            confirmMessage: document.getElementById('confirmMessage'),
+            reorderTitle: document.getElementById('reorderTitle'),
+            reorderList: document.getElementById('reorderList'),
+            
+            // Modal buttons
+            cancelCourseModal: document.getElementById('cancelCourseModal'),
+            saveCourseBtn: document.getElementById('saveCourseBtn'),
+            cancelTopicModal: document.getElementById('cancelTopicModal'),
+            saveTopicBtn: document.getElementById('saveTopicBtn'),
+            cancelContentModal: document.getElementById('cancelContentModal'),
+            saveContentBtn: document.getElementById('saveContentBtn'),
+            cancelConfirm: document.getElementById('cancelConfirm'),
+            confirmDelete: document.getElementById('confirmDelete'),
+            cancelReorder: document.getElementById('cancelReorder'),
+            saveReorder: document.getElementById('saveReorder')
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            loadCourses();
+        });
+
+        // Setup all event listeners
+        function setupEventListeners() {
+            // Navigation buttons
+            elements.showCourses.addEventListener('click', () => showView('courses'));
+            elements.createCourseBtn.addEventListener('click', () => openCourseModal());
+            elements.refreshBtn.addEventListener('click', refreshData);
+            elements.backToCourses.addEventListener('click', () => showView('courses'));
+            elements.backToCourse.addEventListener('click', () => showView('course'));
+            
+            // Course actions
+            elements.editCourseBtn.addEventListener('click', () => openCourseModal('edit'));
+            elements.addTopicBtn.addEventListener('click', () => openTopicModal());
+            
+            // Topic actions
+            elements.editTopicBtn.addEventListener('click', () => openTopicModal('edit'));
+            elements.addContentBtn.addEventListener('click', () => openContentModal());
+            
+            // Modal cancel buttons
+            elements.cancelCourseModal.addEventListener('click', () => closeModal('courseModal'));
+            elements.cancelTopicModal.addEventListener('click', () => closeModal('topicModal'));
+            elements.cancelContentModal.addEventListener('click', () => closeModal('contentModal'));
+            elements.cancelConfirm.addEventListener('click', () => closeModal('confirmModal'));
+            elements.cancelReorder.addEventListener('click', () => closeModal('reorderModal'));
+            
+            // Form submissions
+            elements.courseForm.addEventListener('submit', handleCourseSubmit);
+            elements.topicForm.addEventListener('submit', handleTopicSubmit);
+            elements.contentForm.addEventListener('submit', handleContentSubmit);
+            
+            // Content type change
+            elements.contentType.addEventListener('change', updateContentFields);
+            
+            // Confirm delete
+            elements.confirmDelete.addEventListener('click', handleDelete);
+            
+            // Save reorder
+            elements.saveReorder.addEventListener('click', saveReorder);
+            
+            // Close modals on outside click
+            document.addEventListener('click', (e) => {
+                if (e.target === elements.courseModal) closeModal('courseModal');
+                if (e.target === elements.topicModal) closeModal('topicModal');
+                if (e.target === elements.contentModal) closeModal('contentModal');
+                if (e.target === elements.confirmModal) closeModal('confirmModal');
+                if (e.target === elements.reorderModal) closeModal('reorderModal');
+            });
+        }
+
+        // View management
+        function showView(view, data = null) {
+            elements.coursesView.classList.add('hidden');
+            elements.courseView.classList.add('hidden');
+            elements.topicView.classList.add('hidden');
+            
+            switch(view) {
+                case 'courses':
+                    elements.coursesView.classList.remove('hidden');
+                    break;
+                case 'course':
+                    if (data) {
+                        currentCourseId = data._id;
+                        elements.courseTitle.textContent = data.courseName;
+                        elements.courseDescription.textContent = data.description;
+                        loadTopics();
+                    }
+                    elements.courseView.classList.remove('hidden');
+                    break;
+                case 'topic':
+                    if (data) {
+                        currentTopicId = data._id;
+                        elements.topicTitle.textContent = data.topicName;
+                        loadContent();
+                    }
+                    elements.topicView.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        // Modal management
+        function openModal(modalName) {
+            elements[modalName].classList.remove('hidden');
+        }
+
+        function closeModal(modalName) {
+            elements[modalName].classList.add('hidden');
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const iconMap = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+            
+            elements.toastIcon.className = iconMap[type];
+            elements.toastMessage.textContent = message;
+            
+            elements.toast.classList.remove('hidden');
+            elements.toast.classList.remove('bg-red-800', 'bg-yellow-800', 'bg-blue-800');
+            
+            if (type === 'error') elements.toast.classList.add('bg-red-800');
+            else if (type === 'warning') elements.toast.classList.add('bg-yellow-800');
+            else if (type === 'info') elements.toast.classList.add('bg-blue-800');
+            else elements.toast.classList.add('bg-green-800');
+            
+            setTimeout(() => {
+                elements.toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // API Helper Functions
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            elements.loading.classList.remove('hidden');
+            
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (data && method !== 'GET') {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const result = await response.json();
+                
+                elements.loading.classList.add('hidden');
+                
+                if (!response.ok) {
+                    throw new Error(result.message || `API Error: ${response.status}`);
+                }
+                
+                return result;
+            } catch (error) {
+                elements.loading.classList.add('hidden');
+                showToast(error.message, 'error');
+                throw error;
+            }
+        }
+
+        // Load all courses
+        async function loadCourses() {
+            try {
+                const result = await apiRequest('/courses');
+                
+                elements.coursesContainer.innerHTML = '';
+                
+                if (result.data && result.data.length > 0) {
+                    elements.noCourses.classList.add('hidden');
+                    
+                    result.data.forEach(course => {
+                        const courseCard = createCourseCard(course);
+                        elements.coursesContainer.appendChild(courseCard);
+                    });
+                } else {
+                    elements.noCourses.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load courses:', error);
+            }
+        }
+
+        // Create course card element
+        function createCourseCard(course) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-100';
+            
+            const coverArt = course.coverArt || 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+            
+            card.innerHTML = `
+                <div class="h-40 bg-gray-200 relative">
+                    <img src="${coverArt}" alt="${course.courseName}" class="w-full h-full object-cover">
+                    <div class="absolute top-2 right-2">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${course.isVisible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${course.isVisible ? 'Visible' : 'Hidden'}
+                        </span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2 truncate">${course.courseName}</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">${course.description}</p>
+                    <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                        <span>
+                            <i class="fas fa-folder mr-1"></i>
+                            ${course.topicCount || course.topics?.length || 0} topics
+                        </span>
+                        <span>
+                            <i class="fas fa-file-alt mr-1"></i>
+                            ${course.totalContentCount || 0} items
+                        </span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="view-course-btn flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                            data-id="${course._id}">
+                            <i class="fas fa-eye mr-1"></i> View
+                        </button>
+                        <button class="edit-course-btn px-3 py-2 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 transition"
+                            data-id="${course._id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-course-btn px-3 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition"
+                            data-id="${course._id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners to buttons
+            card.querySelector('.view-course-btn').addEventListener('click', () => {
+                showView('course', course);
+            });
+            
+            card.querySelector('.edit-course-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openCourseModal('edit', course);
+            });
+            
+            card.querySelector('.delete-course-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmDelete('course', course._id, course.courseName);
+            });
+            
+            return card;
+        }
+
+        // Load topics for current course
+        async function loadTopics() {
+            try {
+                const result = await apiRequest(`/courses/${currentCourseId}`);
+                const course = result.data;
+                
+                elements.topicsContainer.innerHTML = '';
+                
+                if (course.topics && course.topics.length > 0) {
+                    elements.noTopics.classList.add('hidden');
+                    
+                    // Sort topics by order
+                    const sortedTopics = [...course.topics].sort((a, b) => a.order - b.order);
+                    
+                    sortedTopics.forEach(topic => {
+                        const topicElement = createTopicElement(topic);
+                        elements.topicsContainer.appendChild(topicElement);
+                    });
+                    
+                    // Add reorder button if there are topics
+                    if (sortedTopics.length > 1) {
+                        const reorderBtn = document.createElement('button');
+                        reorderBtn.className = 'mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition';
+                        reorderBtn.innerHTML = '<i class="fas fa-sort mr-2"></i>Reorder Topics';
+                        reorderBtn.addEventListener('click', () => openReorderModal('topics', sortedTopics));
+                        elements.topicsContainer.appendChild(reorderBtn);
+                    }
+                } else {
+                    elements.noTopics.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load topics:', error);
+            }
+        }
+
+        // Create topic element
+        function createTopicElement(topic) {
+            const topicDiv = document.createElement('div');
+            topicDiv.className = 'bg-gray-50 rounded-lg border border-gray-200 p-4 hover:border-blue-300 transition';
+            
+            const contentCount = topic.content?.data?.length || 0;
+            
+            topicDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded mr-2">
+                            Order: ${topic.order}
+                        </span>
+                        <h4 class="inline font-semibold text-gray-800">${topic.topicName}</h4>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="reorder-content-btn px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition"
+                            data-id="${topic._id}" ${contentCount < 2 ? 'disabled' : ''}>
+                            <i class="fas fa-sort mr-1"></i>Reorder
+                        </button>
+                        <button class="edit-topic-btn px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition"
+                            data-id="${topic._id}">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button class="delete-topic-btn px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                            data-id="${topic._id}">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">
+                        <i class="fas fa-file-alt mr-1"></i>
+                        ${contentCount} content item${contentCount !== 1 ? 's' : ''}
+                    </span>
+                    <button class="view-topic-btn px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                        data-id="${topic._id}">
+                        <i class="fas fa-arrow-right mr-1"></i>Open
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            topicDiv.querySelector('.view-topic-btn').addEventListener('click', () => {
+                showView('topic', topic);
+            });
+            
+            topicDiv.querySelector('.edit-topic-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openTopicModal('edit', topic);
+            });
+            
+            topicDiv.querySelector('.delete-topic-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmDelete('topic', topic._id, topic.topicName);
+            });
+            
+            topicDiv.querySelector('.reorder-content-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (contentCount >= 2) {
+                    openReorderModal('content', topic.content.data, topic._id);
+                }
+            });
+            
+            return topicDiv;
+        }
+
+        // Load content for current topic
+        async function loadContent() {
+            try {
+                const result = await apiRequest(`/courses/${currentCourseId}`);
+                const course = result.data;
+                
+                const topic = course.topics.find(t => t._id === currentTopicId);
+                if (!topic) return;
+                
+                elements.contentContainer.innerHTML = '';
+                
+                if (topic.content.data && topic.content.data.length > 0) {
+                    elements.noContent.classList.add('hidden');
+                    
+                    // Sort content by order
+                    const sortedContent = [...topic.content.data].sort((a, b) => a.order - b.order);
+                    
+                    sortedContent.forEach(content => {
+                        const contentElement = createContentElement(content);
+                        elements.contentContainer.appendChild(contentElement);
+                    });
+                    
+                    // Add reorder button if there are multiple content items
+                    if (sortedContent.length > 1) {
+                        const reorderBtn = document.createElement('button');
+                        reorderBtn.className = 'mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition';
+                        reorderBtn.innerHTML = '<i class="fas fa-sort mr-2"></i>Reorder Content';
+                        reorderBtn.addEventListener('click', () => openReorderModal('content', sortedContent));
+                        elements.contentContainer.appendChild(reorderBtn);
+                    }
+                } else {
+                    elements.noContent.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load content:', error);
+            }
+        }
+
+        // Create content element
+        function createContentElement(content) {
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 transition';
+            
+            const typeColors = {
+                TEXT: 'bg-blue-100 text-blue-800',
+                VIDEO: 'bg-red-100 text-red-800',
+                IMAGE: 'bg-green-100 text-green-800',
+                AUDIO: 'bg-yellow-100 text-yellow-800',
+                LINK: 'bg-purple-100 text-purple-800',
+                FILE: 'bg-gray-100 text-gray-800',
+                DOCS: 'bg-indigo-100 text-indigo-800',
+                EMBED: 'bg-pink-100 text-pink-800',
+                DISCUSSION: 'bg-teal-100 text-teal-800',
+                QNA: 'bg-orange-100 text-orange-800',
+                MCQ: 'bg-cyan-100 text-cyan-800',
+                PPT: 'bg-lime-100 text-lime-800'
+            };
+            
+            const typeColor = typeColors[content.type] || 'bg-gray-100 text-gray-800';
+            
+            // Format data for display
+            let dataPreview = 'No data';
+            if (content.data) {
+                if (content.type === 'TEXT' && content.data.text) {
+                    dataPreview = content.data.text.substring(0, 100) + (content.data.text.length > 100 ? '...' : '');
+                } else if (content.type === 'VIDEO' && content.data.url) {
+                    dataPreview = content.data.url;
+                } else if (content.type === 'IMAGE' && content.data.url) {
+                    dataPreview = content.data.url;
+                } else if (content.type === 'LINK' && content.data.externalUrl) {
+                    dataPreview = content.data.externalUrl;
+                } else {
+                    dataPreview = JSON.stringify(content.data).substring(0, 100) + '...';
+                }
+            }
+            
+            contentDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center">
+                        <span class="inline-block px-2 py-1 text-xs font-semibold ${typeColor} rounded mr-3">
+                            ${content.type}
+                        </span>
+                        <span class="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded">
+                            Order: ${content.order}
+                        </span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="edit-content-btn px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition"
+                            data-id="${content._id}">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </button>
+                        <button class="delete-content-btn px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                            data-id="${content._id}">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="text-sm text-gray-500 mb-1">Data:</div>
+                    <div class="text-sm bg-gray-50 p-3 rounded font-mono overflow-x-auto">
+                        ${dataPreview}
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">
+                    Created: ${new Date(content.createdAt).toLocaleDateString()}
+                </div>
+            `;
+            
+            // Add event listeners
+            contentDiv.querySelector('.edit-content-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openContentModal('edit', content);
+            });
+            
+            contentDiv.querySelector('.delete-content-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmDelete('content', content._id, `${content.type} content`);
+            });
+            
+            return contentDiv;
+        }
+
+        // Course modal functions
+        function openCourseModal(mode = 'create', course = null) {
+            if (mode === 'edit' && course) {
+                elements.courseModalTitle.textContent = 'Edit Course';
+                elements.courseId.value = course._id;
+                elements.courseName.value = course.courseName;
+                elements.courseDescriptionInput.value = course.description;
+                elements.coverArt.value = course.coverArt || '';
+                elements.isVisible.checked = course.isVisible;
+            } else {
+                elements.courseModalTitle.textContent = 'Create New Course';
+                elements.courseId.value = '';
+                elements.courseName.value = '';
+                elements.courseDescriptionInput.value = '';
+                elements.coverArt.value = '';
+                elements.isVisible.checked = true;
+            }
+            
+            openModal('courseModal');
+        }
+
+        async function handleCourseSubmit(e) {
+            e.preventDefault();
+            
+            const courseData = {
+                courseName: elements.courseName.value,
+                description: elements.courseDescriptionInput.value,
+                coverArt: elements.coverArt.value || null,
+                isVisible: elements.isVisible.checked
+            };
+            
+            const courseId = elements.courseId.value;
+            const isEdit = !!courseId;
+            
+            try {
+                if (isEdit) {
+                    await apiRequest(`/courses/${courseId}`, 'PUT', courseData);
+                    showToast('Course updated successfully', 'success');
+                } else {
+                    await apiRequest('/courses', 'POST', courseData);
+                    showToast('Course created successfully', 'success');
+                }
+                
+                closeModal('courseModal');
+                await loadCourses();
+                
+                // If we're editing the current course, update the view
+                if (isEdit && currentCourseId === courseId) {
+                    const result = await apiRequest(`/courses/${courseId}`);
+                    showView('course', result.data);
+                }
+            } catch (error) {
+                showToast(`Failed to save course: ${error.message}`, 'error');
+            }
+        }
+
+        // Topic modal functions
+        function openTopicModal(mode = 'create', topic = null) {
+            if (mode === 'edit' && topic) {
+                elements.topicModalTitle.textContent = 'Edit Topic';
+                elements.topicId.value = topic._id;
+                elements.topicName.value = topic.topicName;
+                elements.topicOrder.value = topic.order;
+            } else {
+                elements.topicModalTitle.textContent = 'Add New Topic';
+                elements.topicId.value = '';
+                elements.topicName.value = '';
+                elements.topicOrder.value = '';
+            }
+            
+            elements.currentCourseId.value = currentCourseId;
+            openModal('topicModal');
+        }
+
+        async function handleTopicSubmit(e) {
+            e.preventDefault();
+            
+            const topicData = {
+                topicName: elements.topicName.value,
+                order: elements.topicOrder.value || undefined
+            };
+            
+            const topicId = elements.topicId.value;
+            const isEdit = !!topicId;
+            const courseId = elements.currentCourseId.value;
+            
+            try {
+                if (isEdit) {
+                    await apiRequest(`/courses/${courseId}/topics/${topicId}`, 'PUT', topicData);
+                    showToast('Topic updated successfully', 'success');
+                } else {
+                    await apiRequest(`/courses/${courseId}/topics`, 'POST', topicData);
+                    showToast('Topic added successfully', 'success');
+                }
+                
+                closeModal('topicModal');
+                await loadTopics();
+            } catch (error) {
+                showToast(`Failed to save topic: ${error.message}`, 'error');
+            }
+        }
+
+        // Content modal functions
+        function openContentModal(mode = 'create', content = null) {
+            if (mode === 'edit' && content) {
+                elements.contentModalTitle.textContent = 'Edit Content';
+                elements.contentId.value = content._id;
+                elements.contentType.value = content.type;
+                elements.contentOrder.value = content.order;
+                elements.currentTopicId.value = currentTopicId;
+                elements.currentCourseIdForContent.value = currentCourseId;
+                
+                // Populate dynamic fields
+                updateContentFields();
+                populateContentFields(content.data);
+            } else {
+                elements.contentModalTitle.textContent = 'Add New Content';
+                elements.contentId.value = '';
+                elements.contentType.value = '';
+                elements.contentOrder.value = '';
+                elements.currentTopicId.value = currentTopicId;
+                elements.currentCourseIdForContent.value = currentCourseId;
+                
+                // Clear dynamic fields
+                elements.dynamicContentFields.innerHTML = '';
+            }
+            
+            openModal('contentModal');
+        }
+
+        function updateContentFields() {
+            const type = elements.contentType.value;
+            elements.dynamicContentFields.innerHTML = '';
+            
+            if (type && contentTypeConfigs[type]) {
+                const config = contentTypeConfigs[type];
+                
+                config.fields.forEach(field => {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'mb-4';
+                    
+                    if (field.type === 'checkbox') {
+                        fieldDiv.innerHTML = `
+                            <label class="flex items-center">
+                                <input type="checkbox" 
+                                       id="field_${field.name}" 
+                                       name="${field.name}"
+                                       ${field.value ? `value="${field.value}"` : ''}
+                                       class="mr-2">
+                                <span class="text-gray-700">${field.label}</span>
+                            </label>
+                        `;
+                    } else if (field.type === 'textarea') {
+                        fieldDiv.innerHTML = `
+                            <label class="block text-gray-700 mb-2" for="field_${field.name}">
+                                ${field.label} ${field.required ? '*' : ''}
+                            </label>
+                            <textarea id="field_${field.name}" 
+                                      name="${field.name}"
+                                      ${field.required ? 'required' : ''}
+                                      ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}
+                                      rows="3"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"></textarea>
+                        `;
+                    } else {
+                        fieldDiv.innerHTML = `
+                            <label class="block text-gray-700 mb-2" for="field_${field.name}">
+                                ${field.label} ${field.required ? '*' : ''}
+                            </label>
+                            <input type="${field.type}" 
+                                   id="field_${field.name}" 
+                                   name="${field.name}"
+                                   ${field.required ? 'required' : ''}
+                                   ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}
+                                   ${field.value ? `value="${field.value}"` : ''}
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        `;
+                    }
+                    
+                    elements.dynamicContentFields.appendChild(fieldDiv);
+                });
+            }
+        }
+
+        function populateContentFields(data) {
+            if (!data) return;
+            
+            Object.keys(data).forEach(key => {
+                const field = document.getElementById(`field_${key}`);
+                if (field) {
+                    if (field.type === 'checkbox') {
+                        field.checked = data[key];
+                    } else if (field.type === 'textarea') {
+                        field.value = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+                    } else {
+                        field.value = data[key];
+                    }
+                }
+            });
+        }
+
+        async function handleContentSubmit(e) {
+            e.preventDefault();
+            
+            const type = elements.contentType.value;
+            const order = elements.contentOrder.value || undefined;
+            
+            // Collect dynamic field data
+            const data = {};
+            const fieldElements = elements.dynamicContentFields.querySelectorAll('[name]');
+            
+            fieldElements.forEach(element => {
+                if (element.type === 'checkbox') {
+                    data[element.name] = element.checked;
+                } else if (element.type === 'textarea') {
+                    try {
+                        // Try to parse JSON if it looks like JSON
+                        const value = element.value.trim();
+                        if (value.startsWith('[') || value.startsWith('{')) {
+                            data[element.name] = JSON.parse(value);
+                        } else {
+                            data[element.name] = value;
+                        }
+                    } catch {
+                        data[element.name] = element.value;
+                    }
+                } else {
+                    data[element.name] = element.value;
+                }
+            });
+            
+            const contentData = {
+                type,
+                order,
+                data
+            };
+            
+            const contentId = elements.contentId.value;
+            const isEdit = !!contentId;
+            const courseId = elements.currentCourseIdForContent.value;
+            const topicId = elements.currentTopicId.value;
+            
+            try {
+                if (isEdit) {
+                    await apiRequest(`/courses/${courseId}/topics/${topicId}/content/${contentId}`, 'PUT', contentData);
+                    showToast('Content updated successfully', 'success');
+                } else {
+                    await apiRequest(`/courses/${courseId}/topics/${topicId}/content`, 'POST', contentData);
+                    showToast('Content added successfully', 'success');
+                }
+                
+                closeModal('contentModal');
+                await loadContent();
+            } catch (error) {
+                showToast(`Failed to save content: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete confirmation
+        function confirmDelete(type, id, name) {
+            elements.confirmTitle.textContent = `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            elements.confirmMessage.textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            
+            elements.confirmDelete.dataset.type = type;
+            elements.confirmDelete.dataset.id = id;
+            
+            openModal('confirmModal');
+        }
+
+        async function handleDelete() {
+            const type = elements.confirmDelete.dataset.type;
+            const id = elements.confirmDelete.dataset.id;
+            
+            closeModal('confirmModal');
+            
+            try {
+                switch(type) {
+                    case 'course':
+                        await apiRequest(`/courses/${id}`, 'DELETE');
+                        showToast('Course deleted successfully', 'success');
+                        await loadCourses();
+                        showView('courses');
+                        break;
+                        
+                    case 'topic':
+                        await apiRequest(`/courses/${currentCourseId}/topics/${id}`, 'DELETE');
+                        showToast('Topic deleted successfully', 'success');
+                        await loadTopics();
+                        break;
+                        
+                    case 'content':
+                        await apiRequest(`/courses/${currentCourseId}/topics/${currentTopicId}/content/${id}`, 'DELETE');
+                        showToast('Content deleted successfully', 'success');
+                        await loadContent();
+                        break;
+                }
+            } catch (error) {
+                showToast(`Failed to delete ${type}: ${error.message}`, 'error');
+            }
+        }
+
+        // Reorder functionality
+        function openReorderModal(type, items, topicId = null) {
+            reorderType = type;
+            itemsToReorder = [...items];
+            
+            if (type === 'topics') {
+                elements.reorderTitle.textContent = 'Reorder Topics';
+            } else {
+                elements.reorderTitle.textContent = 'Reorder Content Items';
+            }
+            
+            // Store topic ID for content reordering
+            if (topicId) {
+                itemsToReorder.topicId = topicId;
+            }
+            
+            renderReorderList();
+            openModal('reorderModal');
+        }
+
+        function renderReorderList() {
+            elements.reorderList.innerHTML = '';
+            
+            // Make items sortable
+            itemsToReorder.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-gray-50 p-4 rounded-lg mb-3 cursor-move border border-gray-200 flex items-center justify-between';
+                itemDiv.draggable = true;
+                itemDiv.dataset.index = index;
+                
+                let itemName = '';
+                if (reorderType === 'topics') {
+                    itemName = item.topicName;
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-800 rounded-full font-bold mr-3">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <div class="font-medium">${itemName}</div>
+                                <div class="text-sm text-gray-600">${item.content?.data?.length || 0} content items</div>
+                            </div>
+                        </div>
+                        <div class="text-gray-400">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                    `;
+                } else {
+                    itemName = item.type;
+                    itemDiv.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-800 rounded-full font-bold mr-3">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <div class="font-medium">${itemName}</div>
+                                <div class="text-sm text-gray-600 truncate max-w-xs">
+                                    ${JSON.stringify(item.data).substring(0, 50)}...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-gray-400">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                    `;
+                }
+                
+                // Drag and drop events
+                itemDiv.addEventListener('dragstart', handleDragStart);
+                itemDiv.addEventListener('dragover', handleDragOver);
+                itemDiv.addEventListener('drop', handleDrop);
+                itemDiv.addEventListener('dragend', handleDragEnd);
+                
+                elements.reorderList.appendChild(itemDiv);
+            });
+            
+            // Add drag and drop instructions
+            const instructions = document.createElement('div');
+            instructions.className = 'text-center text-gray-500 text-sm mt-4';
+            instructions.textContent = 'Drag and drop items to reorder';
+            elements.reorderList.appendChild(instructions);
+        }
+
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('opacity-50');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedItem !== this) {
+                const fromIndex = parseInt(draggedItem.dataset.index);
+                const toIndex = parseInt(this.dataset.index);
+                
+                // Swap items in array
+                [itemsToReorder[fromIndex], itemsToReorder[toIndex]] = 
+                [itemsToReorder[toIndex], itemsToReorder[fromIndex]];
+                
+                // Update dataset indices
+                draggedItem.dataset.index = toIndex;
+                this.dataset.index = fromIndex;
+                
+                // Re-render the list
+                renderReorderList();
+            }
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('opacity-50');
+            draggedItem = null;
+        }
+
+        async function saveReorder() {
+            const itemIds = itemsToReorder.map(item => item._id);
+            
+            try {
+                if (reorderType === 'topics') {
+                    await apiRequest(`/courses/${currentCourseId}/reorder-topics`, 'PUT', {
+                        topicIds: itemIds
+                    });
+                    showToast('Topics reordered successfully', 'success');
+                    await loadTopics();
+                } else {
+                    const topicId = itemsToReorder.topicId || currentTopicId;
+                    await apiRequest(`/courses/${currentCourseId}/topics/${topicId}/reorder-content`, 'PUT', {
+                        contentIds: itemIds
+                    });
+                    showToast('Content reordered successfully', 'success');
+                    await loadContent();
+                }
+                
+                closeModal('reorderModal');
+            } catch (error) {
+                showToast(`Failed to save order: ${error.message}`, 'error');
+            }
+        }
+
+        // Refresh data
+        async function refreshData() {
+            showToast('Refreshing data...', 'info');
+            
+            if (currentTopicId) {
+                await loadContent();
+            } else if (currentCourseId) {
+                await loadTopics();
+            } else {
+                await loadCourses();
+            }
+            
+            showToast('Data refreshed', 'success');
+        }
+    </script>
+</body>
+</html>
